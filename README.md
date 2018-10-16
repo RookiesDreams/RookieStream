@@ -1,2 +1,2 @@
 # RookieStream
-exploring the data streaming between personal pc and HPC
+exploring the data streaming ability between personal pc and HPC
