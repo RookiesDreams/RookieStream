@@ -16,7 +16,7 @@ using namespace std;
 
 class rksNetworkBase{
 protected:
-    int    sockfd, n,rec_len;  
+    int    sockfd,connfd, n,rec_len;  
     char*    sendBuffer;  
     char*    recvBuffer; 
 
@@ -37,9 +37,13 @@ public:
     virtual int setSocket()=0;// int protofamily,int type, int protocol )=0;
     virtual int setAddress_Port(int p, string addressString)=0;
     virtual int rksBind()=0;
+    virtual int rksListen()=0;
+    virtual int rksAccept()=0;
     virtual int rksConnect()=0;
     virtual int rksSend()=0;
     virtual int rksRecv()=0;
+    virtual int getConnfd()=0;
+    virtual int rksClose()=0;
 
 };
 
@@ -62,9 +66,13 @@ public:
     int setSocket();
     int setAddress_Port(int p, string addressString);
     int rksBind();
+    int rksListen();
+    int rksAccept();
     int rksConnect();
     int rksSend();
     int rksRecv();
+    int rksClose();
+    int getConnfd();
 
 	~rksIpv4_StreamTcp() { delete sendBuffer; delete recvBuffer; }
 };

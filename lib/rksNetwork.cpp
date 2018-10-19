@@ -21,23 +21,53 @@ int rksIpv4_StreamTcp::setAddress_Port( int p, string addressString)
 {
     port = p;
     memset(&servaddr_ipv4, 0, sizeof(servaddr_ipv4));  
-    servaddr_ipv4.sin_family = protofamily;  
-    servaddr_ipv4.sin_port = htons(port);  
-    if( inet_pton(protofamily, addressString.c_str(), &servaddr_ipv4.sin_addr) <= 0)
-    {  
-        printf("inet_pton error for %s\n",addressString.c_str());  
-        exit(0);  
+    servaddr_ipv4.sin_family = protofamily;
+    servaddr_ipv4.sin_port = htons(port);
+    if(isServer == 1)
+    {
+        servaddr_ipv4.sin_addr.s_addr = htonl(INADDR_ANY);
+    }  
+    else
+    {
+        if( inet_pton(protofamily, addressString.c_str(), &servaddr_ipv4.sin_addr) <= 0)
+        {  
+            printf("inet_pton error for %s\n",addressString.c_str());  
+            exit(0);  
+        }
     }
     return 0;
 }
 
 int rksIpv4_StreamTcp:: rksBind()
-{
-    if( isServer == true)
-    {
-        return 0;
-    }
+{ 
+    if( bind(sockfd, (struct sockaddr*)&servaddr_ipv4, sizeof(servaddr_ipv4)) == -1)
+    {  
+    printf("bind socket error: %s(errno: %d)\n",strerror(errno),errno);  
+    exit(0);  
+    }  
+    return 0;
 }
+
+int rksIpv4_StreamTcp:: rksListen()
+{
+    if( listen(sockfd, 10) == -1){  
+    printf("listen socket error: %s(errno: %d)\n",strerror(errno),errno);  
+    exit(0);  
+    }  
+    printf("======waiting for client's request======\n"); 
+    return 0;
+}
+
+int rksIpv4_StreamTcp:: rksAccept()
+{
+      
+    if( (connfd = accept(sockfd, (struct sockaddr*)NULL, NULL)) == -1){  
+        printf("accept socket error: %s(errno: %d)",strerror(errno),errno);  
+        return -1;
+    }
+    return 0;
+}
+
 
 int rksIpv4_StreamTcp:: rksConnect()
 {
@@ -52,9 +82,17 @@ int rksIpv4_StreamTcp:: rksConnect()
 
 int rksIpv4_StreamTcp::rksSend()
 {
-    printf("send msg to server: \n");  
+    int iSendFd;
+    if (isServer == 0){
+    printf("send msg to server: \n"); 
+    iSendFd = sockfd; 
+    }
+    else{
+    printf("send msg to client: \n");
+    iSendFd = connfd; 
+    }
     fgets(sendBuffer, MAXLINE, stdin);
-    if( send(sockfd, sendBuffer, strlen(sendBuffer), 0) < 0)  
+    if( send(iSendFd, sendBuffer, strlen(sendBuffer), 0) < 0)  
     {  
     printf("send msg error: %s(errno: %d)\n", strerror(errno), errno);  
     exit(0);  
@@ -64,16 +102,25 @@ int rksIpv4_StreamTcp::rksSend()
    
 int rksIpv4_StreamTcp:: rksRecv()
 {
-
-    if((rec_len = recv(sockfd, recvBuffer, MAXLINE,0)) == -1) {
-       perror("recv error");  
-       exit(1);  
-    }  
+    if(isServer == 0){
+        if((rec_len = recv(sockfd, recvBuffer, MAXLINE,0)) == -1) {
+           perror("recv error");  
+           exit(1);  
+        } 
+    } 
+    else
+    {
+        rec_len = recv(connfd, recvBuffer, MAXLINE, 0);
+    }
 	recvBuffer[rec_len]  = '\0';
     printf("Received : %s ", recvBuffer);
-    close(sockfd);  
-    exit(0);  
     return 0;
 }
+
+int rksIpv4_StreamTcp:: rksClose()
+{
+    close(sockfd);
+}
+int rksIpv4_StreamTcp::getConnfd(){return connfd;}
   
 

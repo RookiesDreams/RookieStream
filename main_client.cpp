@@ -8,8 +8,9 @@ int main(int argc, char** argv)
 
 	oTest->setBuffer(MAXLINE);
 	oTest->setSocket();
-	oTest->setAddress_Port(8380, "192.168.0.9");
+	oTest->setAddress_Port(8380, "192.168.0.11");
 	oTest->rksConnect();
 	oTest->rksSend();
 	oTest->rksRecv();
+	oTest->rksClose();
 } 
